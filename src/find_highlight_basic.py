@@ -52,7 +52,7 @@ def select_edge(state: State):
 
     
     """
-    print("💬 select_edge 노드 실행 중...")
+    # print("💬 select_edge 노드 실행 중...")
     
     # 1. 그래프 데이터 가져오기
     graph_data = state.get("graph_data", {})
@@ -79,9 +79,8 @@ def select_edge(state: State):
         {edges_json}
 
         위 그래프 데이터를 참고하여 사용자의 질문에 맞는 엣지를 찾아주세요.
-        응답 형식:
-        1. 찾은 엣지 설명
-        2. 아래의 output format에 맞춰 선택한 엣지 정보를 JSON으로 출력해줘, 이외에 절대 다른 내용은 출력하지 말아줘.
+        응답 형식: 아래의 output format에 맞춰 선택한 엣지 정보를 JSON으로 출력해줘, 이외에 절대 다른 내용은 출력하지 말아줘.
+        참고 정보도 보여주지말고 딱 JSON만 보여줘. 데이터 재확인 과정이나 추가적인 설명은 절대 보여주지말고 최종 json 결과만 보여줘.
 
         output format:
         ```json
@@ -97,10 +96,10 @@ def select_edge(state: State):
         ```
 """
         
-        print(f"📊 그래프 컨텍스트 포함: {summary.get('total_nodes', 0)}개 노드, {summary.get('total_edges', 0)}개 엣지")
+        # print(f"📊 그래프 컨텍스트 포함: {summary.get('total_nodes', 0)}개 노드, {summary.get('total_edges', 0)}개 엣지")
     else:
         context_message = "[그래프 데이터를 로드하지 못했습니다. 일반적인 질문에 대해서만 답변할 수 있습니다.]"
-        print("⚠️  그래프 데이터 없이 실행")
+        # print("⚠️  그래프 데이터 없이 실행")
     
     # 3. LLM 인스턴스 생성
     llm = build_chat_model(temperature=0.7)
@@ -190,7 +189,7 @@ def get_node_edge_data(state: State):
             "raw_data": raw_data  # 필요시 원본 데이터도 포함
         }
         
-        print(f"✅ 그래프 데이터 로드 완료: {summary['total_nodes']}개 노드, {summary['total_edges']}개 엣지")
+        # print(f"✅ 그래프 데이터 로드 완료: {summary['total_nodes']}개 노드, {summary['total_edges']}개 엣지")
         
         # 6. state 업데이트
         return {"graph_data": structured_data}
@@ -218,14 +217,14 @@ def find_highlight_edge(state: State):
     Returns:
         dict: 빈 딕셔너리 (상태 유지)
     """
-    print("🔍 find_highlight_edge 노드 실행 중...")
-    graph_data = state.get("graph_data", {})
-    
-    if "error" in graph_data:
-        print(f"⚠️  그래프 데이터 로드 실패: {graph_data.get('error')}")
-    else:
-        summary = graph_data.get("summary", {})
-        print(f"📊 로드된 그래프: {summary.get('total_nodes', 0)}개 노드, {summary.get('total_edges', 0)}개 엣지")
+    # print("🔍 find_highlight_edge 노드 실행 중...")
+    # graph_data = state.get("graph_data", {})
+    # 
+    # if "error" in graph_data:
+    #     print(f"⚠️  그래프 데이터 로드 실패: {graph_data.get('error')}")
+    # else:
+    #     summary = graph_data.get("summary", {})
+    #     print(f"📊 로드된 그래프: {summary.get('total_nodes', 0)}개 노드, {summary.get('total_edges', 0)}개 엣지")
     
     # TODO: LLM을 사용하여 사용자 질문에 해당하는 엣지 찾기
     return {}  # 빈 딕셔너리 반환 (상태 변경 없음)
@@ -240,7 +239,7 @@ def highlighting_edge(state: State):
     Returns:
         dict: 빈 딕셔너리 (상태 유지)
     """
-    print("🎨 highlighting_edge 노드 실행 중...")
+    # print("🎨 highlighting_edge 노드 실행 중...")
     
     # TODO: 하이라이트 로직 구현
     return {}  # 빈 딕셔너리 반환 (상태 변경 없음)
@@ -326,7 +325,7 @@ def main():
         # invoke() 메서드에 사용자 입력을 상태로 전달
         # {"messages": [("user", 사용자입력)]} 형태로 전달
         try:
-            print("\n🤔 생각 중...\n")
+            # print("\n🤔 생각 중...\n")
             
             response = graph.invoke({
                 "messages": [("user", user_input)]
@@ -338,11 +337,11 @@ def main():
             # d) find_highlight_edge → highlighting_edge → END
             # e) 최종 상태(response) 반환
             
-            # 5. AI 응답 출력
+            # 5. AI 응답 출력 (JSON만 출력)
             # response['messages'][-1]: 메시지 리스트의 마지막 요소 (AI 응답)
             # .content: 메시지 객체의 실제 텍스트 내용
-            print(f"🤖 Assistant: {response['messages'][-1].content}")
-            print("-" * 60)
+            print(f"{response['messages'][-1].content}")
+            # print("-" * 60)
             
         except KeyboardInterrupt:
             print("\n\n👋 프로그램을 중단합니다.")
