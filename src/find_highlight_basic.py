@@ -83,7 +83,6 @@ def select_edge(state: State):
         참고 정보도 보여주지말고 딱 JSON만 보여줘. 데이터 재확인 과정이나 추가적인 설명은 절대 보여주지말고 최종 json 결과만 보여줘.
 
         output format:
-        ```json
         {{
             "highlight": {{
                 "id": "엣지ID",
@@ -93,7 +92,6 @@ def select_edge(state: State):
             }},
             "reason": "엣지를 선택한 이유 설명"
         }}
-        ```
 """
         
         # print(f"📊 그래프 컨텍스트 포함: {summary.get('total_nodes', 0)}개 노드, {summary.get('total_edges', 0)}개 엣지")
