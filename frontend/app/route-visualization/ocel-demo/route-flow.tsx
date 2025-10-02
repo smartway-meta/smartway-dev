@@ -4,7 +4,7 @@ import { RouteStartNode } from './route-start-node';
 import { RouteEndNode } from './route-end-node';
 import { RouteStopNode } from './route-stop-node';
 import { RouteEdgeComponent } from './route-edge';
-import { type Edge, type Node, ReactFlow, useEdgesState, useNodesState, Controls, MiniMap, Background, BackgroundVariant } from 'reactflow';
+import { type Edge, type Node, ReactFlow, useEdgesState, useNodesState, Background, BackgroundVariant, useReactFlow } from 'reactflow';
 import 'reactflow/dist/style.css';
 import * as dagre from 'dagre';
 import type React from 'react';
@@ -24,11 +24,13 @@ const edgeTypes = {
 interface RouteFlowProps {
   routeData: RouteGraphData;
   enrichedEdges: EnrichedEdge[];
+  highlightedEdge?: any;
 }
 
-export const RouteFlow: React.FC<RouteFlowProps> = ({ routeData, enrichedEdges }) => {
+export const RouteFlow: React.FC<RouteFlowProps> = ({ routeData, enrichedEdges, highlightedEdge }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const { setCenter, getNode } = useReactFlow();
 
   const applyDagreLayout = useCallback((flowNodes: Node[], flowEdges: Edge[]) => {
     if (!flowNodes.length) return { nodes: flowNodes, edges: flowEdges };
@@ -187,31 +189,91 @@ export const RouteFlow: React.FC<RouteFlowProps> = ({ routeData, enrichedEdges }
     setEdges(layoutedEdges);
   }, [routeData, enrichedEdges, applyDagreLayout, setNodes, setEdges]);
 
+  // Handle highlighted edge (zoom in and highlight)
+  useEffect(() => {
+    if (!highlightedEdge || !highlightedEdge.id) return;
+
+    // Update edges to highlight the selected one with animation
+    setEdges((eds) =>
+      eds.map((edge) => ({
+        ...edge,
+        animated: edge.id === highlightedEdge.id ? true : edge.animated,
+        style: edge.id === highlightedEdge.id
+          ? {
+              stroke: '#22c55e',
+              strokeWidth: 4,
+              strokeDasharray: '5,5',
+              animation: 'dashdraw 0.5s linear infinite',
+            }
+          : edge.style,
+        className: edge.id === highlightedEdge.id ? 'highlighted-edge' : undefined,
+      }))
+    );
+
+    // Zoom to the highlighted edge
+    setTimeout(() => {
+      const sourceNode = getNode(highlightedEdge.source);
+      const targetNode = getNode(highlightedEdge.target);
+
+      if (sourceNode && targetNode) {
+        // Calculate center between source and target nodes
+        const centerX = (sourceNode.position.x + targetNode.position.x) / 2;
+        const centerY = (sourceNode.position.y + targetNode.position.y) / 2;
+
+        // Zoom to the edge with animation
+        setCenter(centerX + 120, centerY + 40, { zoom: 1.5, duration: 800 });
+      }
+    }, 100);
+  }, [highlightedEdge, setEdges, getNode, setCenter]);
+
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      nodeTypes={nodeTypes}
-      edgeTypes={edgeTypes}
-      fitView
-      attributionPosition="bottom-right"
-      style={{ background: '#0f172a', width: '100%', height: '100%' }}
-    >
-      <Controls style={{ position: 'absolute', top: 10, left: 10 }} />
-      <MiniMap
-        zoomable
-        pannable
-        nodeColor="#1e293b"
-        style={{
-          background: '#1e293b',
-          position: 'absolute',
-          bottom: 10,
-          right: 10
-        }}
-      />
-      <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#334155" />
-    </ReactFlow>
+    <>
+      <style>
+        {`
+          @keyframes dashdraw {
+            from {
+              stroke-dashoffset: 10;
+            }
+            to {
+              stroke-dashoffset: 0;
+            }
+          }
+
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.6;
+            }
+          }
+
+          .highlighted-edge {
+            filter: drop-shadow(0 0 8px #22c55e);
+            animation: pulse 1.5s ease-in-out infinite;
+          }
+
+          .react-flow__edge.highlighted-edge path {
+            stroke: #22c55e !important;
+            stroke-width: 4 !important;
+            stroke-dasharray: 5, 5 !important;
+            animation: dashdraw 0.5s linear infinite !important;
+          }
+        `}
+      </style>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        fitView
+        attributionPosition="bottom-right"
+        style={{ background: '#0f172a', width: '100%', height: '100%' }}
+      >
+        <Background variant={BackgroundVariant.Dots} gap={12} size={1} color="#334155" />
+      </ReactFlow>
+    </>
   );
 };

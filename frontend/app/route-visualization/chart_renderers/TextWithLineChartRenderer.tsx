@@ -62,19 +62,18 @@ export function TextWithLineChartRenderer({
       <div className="space-y-4">
           {/* Key insights */}
           {renderHint?.insights && Array.isArray(renderHint.insights) && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg h-fit">
-              <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+            <div className="p-4 bg-blue-900 border border-blue-700 rounded-lg h-fit">
+              <h4 className="font-semibold text-white mb-3 flex items-center">
                 <span className="mr-2">💡</span>
                 Key Insights
               </h4>
-              <ul className="space-y-2 text-sm text-blue-800">
+              <div className="space-y-3 text-sm text-white">
                 {renderHint.insights.map((insight: string, idx: number) => (
-                  <li key={idx} className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-0.5">•</span>
-                    <span className="leading-relaxed">{insight}</span>
-                  </li>
+                  <p key={idx} className="leading-relaxed">
+                    {insight}
+                  </p>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 

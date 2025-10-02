@@ -2,6 +2,9 @@ import { RouteGraphData, RouteNode, RouteEdge, EnrichedEdge, StopNodeData } from
 
 export async function loadRouteData(): Promise<RouteGraphData> {
   const response = await fetch('/reactflow_graph.json');
+  if (!response.ok) {
+    throw new Error(`Failed to fetch route data: ${response.status}`);
+  }
   const data = await response.json();
   return data;
 }
