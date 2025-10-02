@@ -44,52 +44,58 @@ def select_edge(state: State):
     
     동작 과정:
     1. state에서 graph_data 가져오기
-    2. 그래프 데이터를 컨텍스트로 포함한 시스템 메시지 생성
+    2. 그래프 데이터를 JSON 형태로 컨텍스트에 포함
     3. build_chat_model()로 LLM 인스턴스 생성
     4. 사용자 메시지 + 그래프 컨텍스트를 LLM에 전달하여 응답 생성
     5. 생성된 응답을 messages 리스트에 추가
+    6. LLM이 선택한 엣지를 원본 데이터 구조 형태로 출력
+
+    
     """
     print("💬 select_edge 노드 실행 중...")
     
     # 1. 그래프 데이터 가져오기
     graph_data = state.get("graph_data", {})
     
-    # 2. 그래프 데이터를 컨텍스트로 변환
+    # 2. 그래프 데이터를 JSON 형태로 컨텍스트 변환
     context_message = ""
     if graph_data and "error" not in graph_data:
         summary = graph_data.get("summary", {})
         nodes = graph_data.get("nodes", [])
         edges = graph_data.get("edges", [])
         
+        # JSON 형태로 edges 데이터 구조 포함
+        edges_json = json.dumps(edges, ensure_ascii=False, indent=2)
+        
         # 그래프 정보를 텍스트로 구성
         context_message = f"""
-[그래프 데이터 컨텍스트]
-- 총 노드 수: {summary.get('total_nodes', 0)}개
-- 총 엣지 수: {summary.get('total_edges', 0)}개
-- 노드 타입: {', '.join(summary.get('node_types', []))}
-- 설명: {summary.get('description', '')}
+        [그래프 데이터 컨텍스트]
+        - 총 노드 수: {summary.get('total_nodes', 0)}개
+        - 총 엣지 수: {summary.get('total_edges', 0)}개
+        - 노드 타입: {', '.join(summary.get('node_types', []))}
+        - 설명: {summary.get('description', '')}
 
-[노드 목록]
+        [엣지 데이터 구조 (JSON 형식)]
+        {edges_json}
+
+        위 그래프 데이터를 참고하여 사용자의 질문에 맞는 엣지를 찾아주세요.
+        응답 형식:
+        1. 찾은 엣지 설명
+        2. 아래의 output format에 맞춰 선택한 엣지 정보를 JSON으로 출력해줘, 이외에 절대 다른 내용은 출력하지 말아줘.
+
+        output format:
+        ```json
+        {{
+            "highlight": {{
+                "id": "엣지ID",
+                "source": "출발노드ID",
+                "target": "도착노드ID",
+                "label": "엣지라벨"
+            }},
+            "reason": "엣지를 선택한 이유 설명"
+        }}
+        ```
 """
-        # 노드 정보 추가 (처음 10개만)
-        for i, node in enumerate(nodes[:10]):
-            context_message += f"  - {node.get('id')}: {node.get('label')} (type: {node.get('type')})\n"
-        
-        if len(nodes) > 10:
-            context_message += f"  ... 외 {len(nodes) - 10}개 노드\n"
-        
-        context_message += f"\n[엣지 목록]\n"
-        # 엣지 정보 추가 (처음 10개만)
-        for i, edge in enumerate(edges[:10]):
-            context_message += f"  - {edge.get('source')} → {edge.get('target')}"
-            if edge.get('label'):
-                context_message += f" ({edge.get('label')})"
-            context_message += "\n"
-        
-        if len(edges) > 10:
-            context_message += f"  ... 외 {len(edges) - 10}개 엣지\n"
-        
-        context_message += "\n위 그래프 데이터를 참고하여 사용자의 질문에 답변해주세요."
         
         print(f"📊 그래프 컨텍스트 포함: {summary.get('total_nodes', 0)}개 노드, {summary.get('total_edges', 0)}개 엣지")
     else:
