@@ -32,7 +32,7 @@ class State(TypedDict):
 # ============================================================
 # 3. 노드(Node) 함수 정의
 # ============================================================
-def chatbot(state: State):
+def select_edge(state: State):
     """
     챗봇 노드 - Upstage Solar-Pro를 호출하여 응답을 생성합니다.
     
@@ -49,7 +49,7 @@ def chatbot(state: State):
     4. 사용자 메시지 + 그래프 컨텍스트를 LLM에 전달하여 응답 생성
     5. 생성된 응답을 messages 리스트에 추가
     """
-    print("💬 chatbot 노드 실행 중...")
+    print("💬 select_edge 노드 실행 중...")
     
     # 1. 그래프 데이터 가져오기
     graph_data = state.get("graph_data", {})
@@ -250,26 +250,26 @@ def create_graph():
         CompiledGraph: 실행 가능한 컴파일된 그래프
     
     그래프 구조:
-        START → chatbot → END
+        START → select_edge → END
     
     동작 흐름:
     1. StateGraph(State)로 그래프 빌더 생성
-    2. "chatbot" 노드 추가 (위에서 정의한 chatbot 함수 사용)
-    3. START에서 chatbot으로 가는 엣지(화살표) 추가
-    4. chatbot에서 END로 가는 엣지 추가
+    2. "select_edge" 노드 추가 (위에서 정의한 select_edge 함수 사용)
+    3. START에서 select_edge으로 가는 엣지(화살표) 추가
+    4. select_edge에서 END로 가는 엣지 추가
     5. compile()로 그래프를 실행 가능한 형태로 컴파일
     """
     graph_builder = StateGraph(State)  # State 타입을 사용하는 그래프 빌더 생성
     
-    # 노드 추가: "chatbot"이라는 이름으로 chatbot 함수를 노드로 등록
+    # 노드 추가: "select_edge"이라는 이름으로 select_edge 함수를 노드로 등록
     graph_builder.add_node("get_node_edge_data", get_node_edge_data)
-    graph_builder.add_node("chatbot", chatbot)
+    graph_builder.add_node("select_edge", select_edge)
     graph_builder.add_node("find_highlight_edge", find_highlight_edge)
     graph_builder.add_node("highlighting_edge", highlighting_edge)
-    # 엣지 추가: START(시작점) → chatbot 노드로 연결
+    # 엣지 추가: START(시작점) → select_edge 노드로 연결
     graph_builder.add_edge(START, "get_node_edge_data")
-    graph_builder.add_edge("get_node_edge_data", "chatbot")
-    graph_builder.add_edge("chatbot", "find_highlight_edge")
+    graph_builder.add_edge("get_node_edge_data", "select_edge")
+    graph_builder.add_edge("select_edge", "find_highlight_edge")
     graph_builder.add_edge("find_highlight_edge", "highlighting_edge")
     graph_builder.add_edge("highlighting_edge", END)
     
@@ -326,9 +326,9 @@ def main():
                 "messages": [("user", user_input)]
             })
             # 실행 흐름:
-            # a) START → chatbot 노드로 이동
-            # b) chatbot 함수 실행: LLM이 응답 생성
-            # c) chatbot → get_node_edge_data 노드로 이동
+            # a) START → select_edge 노드로 이동
+            # b) select_edge 함수 실행: LLM이 응답 생성
+            # c) select_edge → get_node_edge_data 노드로 이동
             # d) find_highlight_edge → highlighting_edge → END
             # e) 최종 상태(response) 반환
             
